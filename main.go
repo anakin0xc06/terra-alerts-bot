@@ -76,6 +76,8 @@ func MainHandler(bot *tgbotapi.BotAPI, update tgbotapi.Update) {
 			helpers.SendMessage(bot, update, text, "html")
 		case "subscribe":
 			HandleSubscribe(bot, update)
+		case "unsubscribe":
+			HandleUnsubscribe(bot, update)
 		default:
 			text := "Command not available"
 			fmt.Println(command, text)
@@ -122,6 +124,19 @@ func HandleSubscribe(bot *tgbotapi.BotAPI, update tgbotapi.Update)  {
 		return
 	}
 }
+
+func HandleUnsubscribe(bot *tgbotapi.BotAPI, update tgbotapi.Update) {
+	userId := helpers.GetUserID(update)
+	_, ok := subscribers[fmt.Sprint(userId)]
+	if ok {
+		delete(subscribers, fmt.Sprint(userId))
+	}
+	data, _ := json.MarshalIndent(subscribers, "", " ")
+	_ = ioutil.WriteFile(config.SubscribersFile, data, 0644)
+	text := "unsubscribed from alerts"
+	helpers.SendMessage(bot, update, text, tgbotapi.ModeHTML)
+}
+
 func UpdateValidatorMissedVotes()  {
 	var addresses []string
 	for _, validators := range subscribers {
